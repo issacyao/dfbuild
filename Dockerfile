@@ -34,7 +34,10 @@ RUN echo "syntax on" > /root/.vimrc
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install openssh-server -y
 RUN mkdir /var/run/sshd
-RUN echo 'root:Issacyao' | chpasswd
+RUN mkdir /root/.ssh
+RUN echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDKRH4XGENbiOH+LQUddNhGDW5J0qsKNuZYrckyg689mP6q7CxiOJP26jRoPJzaQvlEVkcvCubz6yURVihS+2Xa+KTQcSe/dltREgrcPPxFIrUNDFGCptvD+eSbHn3ULOZ0w2NL8V2F13GLV6ccITF+8IYp1QWT74aFslTVWw2sDv2wx7RSiAhFeNvqb1LVh31Efb+ySHmYNl8ULZ6sDtTqkj8HjLW2VzOS1RVEzgZdaRmgsUWeB0qtvLgDVSovoRZyOQJORzZu5AcV/8+EEcWIus60H7GIM7GC2lfy6dbzAnu49gc+eYNGGjTSanDpAhnPY2shI+xTzyvPSmZQ8F0n issacyao@github.com" > /root/.ssh/authorized_keys
+RUN chmod 700 /root/.ssh
+RUN chmod 600 /root/.ssh/authorized_keys
 RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 # RUN sed -i "s/UsePrivilegeSeparation.*/UsePrivilegeSeparation no/g" /etc/ssh/sshd_config
 
