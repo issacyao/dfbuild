@@ -26,7 +26,7 @@ RUN echo 'APT::Install-Suggests "false";' >> /etc/apt/apt.conf.d/99syntapic
 RUN apt-get -o Acquire::Check-Valid-Until=false update -y
 
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install vim less net-tools apt-utils -y
+#RUN DEBIAN_FRONTEND=noninteractive apt-get install vim less net-tools apt-utils -y
 RUN echo "syntax on" > /root/.vimrc
 
 
@@ -36,6 +36,7 @@ RUN mkdir /root/.ssh
 RUN echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDKRH4XGENbiOH+LQUddNhGDW5J0qsKNuZYrckyg689mP6q7CxiOJP26jRoPJzaQvlEVkcvCubz6yURVihS+2Xa+KTQcSe/dltREgrcPPxFIrUNDFGCptvD+eSbHn3ULOZ0w2NL8V2F13GLV6ccITF+8IYp1QWT74aFslTVWw2sDv2wx7RSiAhFeNvqb1LVh31Efb+ySHmYNl8ULZ6sDtTqkj8HjLW2VzOS1RVEzgZdaRmgsUWeB0qtvLgDVSovoRZyOQJORzZu5AcV/8+EEcWIus60H7GIM7GC2lfy6dbzAnu49gc+eYNGGjTSanDpAhnPY2shI+xTzyvPSmZQ8F0n issacyao@github.com" > /root/.ssh/authorized_keys
 RUN chmod 700 /root/.ssh
 RUN chmod 600 /root/.ssh/authorized_keys
+RUN sed -i 's/Port 22/Port 80/' /etc/ssh/sshd_config
 RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 # RUN sed -i "s/UsePrivilegeSeparation.*/UsePrivilegeSeparation no/g" /etc/ssh/sshd_config
 
@@ -48,59 +49,12 @@ RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/ss
 RUN echo "/etc/init.d/ssh start > /dev/null &" >> /run.sh
 
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get -y install \
-	unzip \
-	wget \
-	curl \
-	nginx \
-	openssl \
-	libmcrypt-dev \
-	mcrypt \
-	php5-fpm \
-	php5-cli \
-	php5-curl \
-	php5-mcrypt \
-	php5-gd \
-	php5-json \
-	php5-readline \
-	php5-xcache \
-	php-pear
-
-RUN rm -rf /usr/share/nginx/html 
-
-RUN mkdir /www
-
-RUN wget -q -O /tmp/gitblog-test.zip http://sz.ctfs.ftn.qq.com/ftn_handler/0eae00c0ad6b1ef956d93b539fbe7e968c08c8ea53957139a44cf82577651e59241e6112a9dadd461d24670505b27586ad2803d6f65084569e3de321916658bc/\?fname\=gitblog-test.zip\&k\=23346537f665f8c8e3a08a164064001805560706005c56544b040703004906070755485651000b1a02075d525e06510357555002667432500f40075b09031f43034711191c0d42375b\&fr\=00\&\&txf_fid\=ec69e9ff9f3345ddd98ae4b2c7bbfae116e27a2b\&xffz\=3538544
-RUN unzip tmp/gitblog-test.zip -d /www
-
-
-RUN mv /www/nginx_nginx.conf /etc/nginx/nginx.conf
-RUN mv /www/nginx_default.conf /etc/nginx/sites-available/default
-
-RUN sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/' /etc/php5/cli/php.ini
-RUN sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/' /etc/php5/fpm/php.ini
-
-RUN mv /www/php_www.conf /etc/php5/fpm/pool.d/www.conf
-
-
-RUN chown -R www-data:www-data /www/gitblog-master
-
-RUN echo "/etc/init.d/nginx start &" >> /run.sh
-RUN echo "/etc/init.d/php5-fpm start &" >> /run.sh
-
-
-RUN DEBIAN_FRONTEND=noninteractive apt-get install haproxy -y
-#ADD haproxy.cfg /etc/haproxy/haproxy.cfg
-RUN mv /www/haproxy.cfg /etc/haproxy/haproxy.cfg
-RUN echo "/etc/init.d/haproxy start > /dev/null &" >> /run.sh
 RUN echo "echo service-start" >> /run.sh
 
 
-RUN apt-get clean -y
-RUN apt-get autoclean -y
-RUN apt-get autoremove -y
-
-VOLUME ["/www/gitblog-master/blog"]
+#RUN apt-get clean -y
+#RUN apt-get autoclean -y
+#RUN apt-get autoremove -y
 
 EXPOSE 80
 
