@@ -17,10 +17,8 @@ RUN touch /run.sh && \
 
 
 RUN mv /etc/apt/sources.list /etc/apt/sources.list.bak && \
-    echo "deb http://mirrors.163.com/debian/ jessie main non-free contrib" >/etc/apt/sources.list && \
-    echo "deb http://mirrors.163.com/debian/ jessie-proposed-updates main non-free contrib" >>/etc/apt/sources.list
-#    echo "deb-src http://mirrors.163.com/debian/ jessie main non-free contrib" >>/etc/apt/sources.list && \
-#    echo "deb-src http://mirrors.163.com/debian/ jessie-proposed-updates main non-free contrib" >>/etc/apt/sources.list
+    echo "deb http://ftp.us.debian.org/debian jessie main non-free contrib" >/etc/apt/sources.list && \
+    echo "deb http://ftp.us.debian.org/debian jessie-proposed-updates main non-free contrib" >>/etc/apt/sources.list
 
 RUN echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/99syntapic
 RUN echo 'APT::Install-Suggests "false";' >> /etc/apt/apt.conf.d/99syntapic
@@ -47,9 +45,7 @@ RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/ss
 # ENV NOTVISIBLE "in users profile"
 # RUN echo "export VISIBLE=now" >> /etc/profile
 
-RUN echo "/etc/init.d/ssh start &&" >> /run.sh
-
-EXPOSE 22
+RUN echo "/etc/init.d/ssh start > /dev/null &" >> /run.sh
 
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install \
@@ -74,7 +70,7 @@ RUN rm -rf /usr/share/nginx/html
 
 RUN mkdir /www
 
-RUN wget -O /tmp/gitblog-test.zip http://sz.ctfs.ftn.qq.com/ftn_handler/0eae00c0ad6b1ef956d93b539fbe7e968c08c8ea53957139a44cf82577651e59241e6112a9dadd461d24670505b27586ad2803d6f65084569e3de321916658bc/\?fname\=gitblog-test.zip\&k\=23346537f665f8c8e3a08a164064001805560706005c56544b040703004906070755485651000b1a02075d525e06510357555002667432500f40075b09031f43034711191c0d42375b\&fr\=00\&\&txf_fid\=ec69e9ff9f3345ddd98ae4b2c7bbfae116e27a2b\&xffz\=3538544
+RUN wget -q -O /tmp/gitblog-test.zip http://sz.ctfs.ftn.qq.com/ftn_handler/0eae00c0ad6b1ef956d93b539fbe7e968c08c8ea53957139a44cf82577651e59241e6112a9dadd461d24670505b27586ad2803d6f65084569e3de321916658bc/\?fname\=gitblog-test.zip\&k\=23346537f665f8c8e3a08a164064001805560706005c56544b040703004906070755485651000b1a02075d525e06510357555002667432500f40075b09031f43034711191c0d42375b\&fr\=00\&\&txf_fid\=ec69e9ff9f3345ddd98ae4b2c7bbfae116e27a2b\&xffz\=3538544
 RUN unzip tmp/gitblog-test.zip -d /www
 
 
@@ -84,36 +80,29 @@ RUN mv /www/nginx_default.conf /etc/nginx/sites-available/default
 RUN sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/' /etc/php5/cli/php.ini
 RUN sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/' /etc/php5/fpm/php.ini
 
-RUN copy /www/php_www.conf /etc/php5/fpm/pool.d/www.conf
+RUN mv /www/php_www.conf /etc/php5/fpm/pool.d/www.conf
 
 
 RUN chown -R www-data:www-data /www/gitblog-master
 
-RUN echo "/etc/init.d/nginx start &&" >> /run.sh
-RUN echo "/etc/init.d/php5-fpm start &&" >> /run.sh
-
-VOLUME ["/www/gitblog-master/blog"]
-
-EXPOSE 8008
+RUN echo "/etc/init.d/nginx start &" >> /run.sh
+RUN echo "/etc/init.d/php5-fpm start &" >> /run.sh
 
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install haproxy -y
 #ADD haproxy.cfg /etc/haproxy/haproxy.cfg
-RUN copy /tmp/res/haproxy.cfg /etc/haproxy/haproxy.cfg
-RUN echo "/etc/init.d/haproxy start &&" >> /run.sh
+RUN mv /www/haproxy.cfg /etc/haproxy/haproxy.cfg
+RUN echo "/etc/init.d/haproxy start > /dev/null &" >> /run.sh
+RUN echo "echo service-start" >> /run.sh
 
-EXPOSE 80
-
-RUN DEBIAN_FRONTEND=noninteractive apt-get install n2n -y
-
-# RUN echo "supernode -l 8888 > /dev/null &" >> /run.sh
-# EXPOSE 8888
 
 RUN apt-get clean -y
 RUN apt-get autoclean -y
 RUN apt-get autoremove -y
 
+VOLUME ["/www/gitblog-master/blog"]
 
-RUN echo "echo service-start" >> /run.sh
+EXPOSE 80
 
-CMD ["/run.sh"]
+#CMD ["/run.sh"]
+ENTRYPOINT /run.sh && /bin/bash
